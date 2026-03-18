@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ASMS Time Sheet App</title>
+    <title>ASMS Timesheet App</title>
     <link rel="icon" href="https://www.asms.ie/wp-content/uploads/2017/12/fav16.png" type="image/png">
     
     <!-- React & ReactDOM -->
@@ -808,7 +808,7 @@
                  if (!signatureData || signatureData.length < 100) {
                      const sigPad = document.querySelector('.signature-section');
                      if(sigPad) sigPad.scrollIntoView({ behavior: 'smooth' });
-                     alert("You must sign the time sheet before submitting.");
+                     alert("You must sign the Timesheet before submitting.");
                  } else {
                      alert("Please complete all mandatory fields in your entries before submitting.");
                  }
@@ -949,10 +949,10 @@
                   <div className="bg-asms-orange/20 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center ring-1 ring-asms-orange/50">
                     <CheckCircle className="text-asms-orange w-12 h-12" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Time Sheet Sent!</h2>
-                  <p className="text-slate-400 mb-8">Your time sheet has been successfully submitted to the office.</p>
+                  <h2 className="text-2xl font-bold text-white mb-2">Timesheet Sent!</h2>
+                  <p className="text-slate-400 mb-8">Your Timesheet has been successfully submitted to the office.</p>
                   
-                  <button onClick={() => { setShowSuccess(false); setTimesheetData({}); setNotes(''); setExpenses(''); setSignatureData(''); setOnCall(false); setCurrentDayIndex(0); setIsSubmitting(false); }} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2"><Clock size={20} />Start New Time Sheet</button>
+                  <button onClick={() => { setShowSuccess(false); setTimesheetData({}); setNotes(''); setExpenses(''); setSignatureData(''); setOnCall(false); setCurrentDayIndex(0); setIsSubmitting(false); }} className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2"><Clock size={20} />Start New Timesheet</button>
                 </div>
               </div>
             );
@@ -967,7 +967,7 @@
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-sm animate-fade-in px-6">
                     <div className="glass-panel p-8 rounded-2xl flex flex-col items-center text-center shadow-2xl border border-asms-orange/30 w-full max-w-md">
                         <Loader2 className="w-12 h-12 text-asms-orange animate-spin mb-4" />
-                        <h2 className="text-xl font-bold text-white mb-2">Submitting Time Sheet...</h2>
+                        <h2 className="text-xl font-bold text-white mb-2">Submitting Timesheet...</h2>
                         <p className="text-slate-400 text-sm">Uploading files & sending data.</p>
                         <p className="text-asms-orange text-xs mt-3 font-medium bg-asms-orange/10 py-2 px-4 rounded-lg">This can take a minute if uploading photos. Please keep this window open.</p>
                     </div>
@@ -1193,7 +1193,7 @@
                             <div className={`signature-section glass-panel rounded-2xl p-6 mb-6 ${showValidation && (!signatureData || signatureData.length < 100) ? 'border-red-500/50 bg-red-900/10' : ''}`}>
                                 <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <Pen size={18} className="text-asms-orange" />
-                                    Time Sheet Signature {showValidation && (!signatureData || signatureData.length < 100) && <span className="text-red-500 text-[10px] normal-case ml-2">(Required)</span>}
+                                    Timesheet Signature {showValidation && (!signatureData || signatureData.length < 100) && <span className="text-red-500 text-[10px] normal-case ml-2">(Required)</span>}
                                 </h3>
                                 <SignaturePad onSave={setSignatureData} />
                                 {showValidation && (!signatureData || signatureData.length < 100) && (
@@ -1281,7 +1281,7 @@
                             disabled={hasAnyOverlaps || allWeekJobs.length === 0}
                             className={`flex-1 ${hasAnyOverlaps || allWeekJobs.length === 0 ? 'bg-slate-800 text-slate-600 opacity-50 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-green-500 hover:to-green-400 shadow-lg shadow-green-900/50 text-white'} text-lg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[56px]`}
                         >
-                             <span>Submit Time Sheet</span>
+                             <span>Submit Timesheet</span>
                              <Send size={22}/>
                         </button>
                     )}
