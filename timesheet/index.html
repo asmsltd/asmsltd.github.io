@@ -56,6 +56,22 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Custom Scrollbar for Dropdown */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(249, 115, 22, 0.5);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(249, 115, 22, 0.8);
+        }
+
         .glass-panel {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
@@ -103,11 +119,6 @@
         }
         input[type="file"]::file-selector-button:hover {
             background-color: #ea580c;
-        }
-        
-        /* Datalist styling adjustments for some browsers */
-        input::-webkit-calendar-picker-indicator {
-            opacity: 1;
         }
     </style>
 </head>
@@ -163,7 +174,6 @@
           { name: 'Sunday', offset: 6 }
         ];
 
-        // ADDED CIF HOLIDAY to leave types
         const LEAVE_TYPES = ['TRAINING', 'BANK HOLIDAY', 'ANNUAL LEAVE', 'CIF HOLIDAY', 'SICK'];
 
         const timeToDec = (timeStr) => {
@@ -461,6 +471,9 @@
           const finish = timeToDec(job.finishTime);
           const crossesMidnight = job.startTime && job.finishTime && finish < start;
           
+          const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+          const projectInputRef = useRef(null);
+
           let duration = 0;
           if (job.startTime && job.finishTime) {
             if (crossesMidnight) duration = (24 - start) + finish;
@@ -470,12 +483,17 @@
           const durationStr = formatDuration(duration);
           const isInvalid = (field) => showValidation && !job[field];
           
-          // UPDATED to check for both ME2007 and ME2800
           const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef?.trim().toUpperCase());
           const isLeave = LEAVE_TYPES.includes(job.asmsRef?.toUpperCase()?.trim());
 
+          // Custom filter for our dropdown
+          const filteredProjects = availableProjects.filter(p =>
+              p.ref.toLowerCase().includes((job.asmsRef || '').toLowerCase()) ||
+              p.site.toLowerCase().includes((job.asmsRef || '').toLowerCase())
+          );
+
           return (
-            <div className={`glass-panel rounded-2xl p-5 mb-4 relative animate-fade-in ${hasOverlap ? 'border-red-500/30 bg-red-900/10' : ''}`}>
+            <div className={`glass-panel rounded-2xl p-5 mb-4 relative animate-fade-in ${hasOverlap ? 'border-red-500/30 bg-red-900/10' : ''} ${showProjectDropdown ? 'z-50' : 'z-10'}`}>
               {hasOverlap && (
                 <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2">
                   <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
@@ -502,7 +520,7 @@
                 </button>
               </div>
 
-              {/* Type Selector - ADDED CIF Holiday */}
+              {/* Type Selector */}
               <div className="flex flex-wrap gap-2 mb-4">
                   {['Work', 'Training', 'Bank Holiday', 'Annual Leave', 'CIF Holiday', 'Sick'].map(type => {
                       const isSelected = type === 'Work' ? !isLeave : job.asmsRef?.toUpperCase()?.trim() === type.toUpperCase();
@@ -532,28 +550,60 @@
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
                                 ASMS Project Ref <span className="text-asms-orange">*</span>
                             </label>
-                            {/* SEARCHABLE DROPDOWN (DATALIST) FOR PROJECT REF */}
-                            <div className="relative">
+                            
+                            {/* CUSTOM DROPDOWN TO PREVENT KEYBOARD OVERLAP */}
+                            <div className="relative" ref={projectInputRef}>
                                 <input 
-                                    list={`project-refs-list-${job.id}`}
+                                    type="text"
                                     className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('asmsRef') ? 'border-red-500/50 bg-red-900/10' : ''}`}
                                     placeholder="Select or type Project Ref"
                                     value={job.asmsRef}
+                                    onFocus={(e) => {
+                                        setShowProjectDropdown(true);
+                                        // Scroll to center so keyboard opens below the field and dropdown
+                                        setTimeout(() => {
+                                            if (e.target) {
+                                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            }
+                                        }, 300);
+                                    }}
+                                    onBlur={() => {
+                                        // Delay hiding to allow click event on option to fire
+                                        setTimeout(() => setShowProjectDropdown(false), 200);
+                                    }}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         onChange(job.id, 'asmsRef', val);
-                                        // Auto-fill site location if it matches a project in our list
+                                        setShowProjectDropdown(true);
+                                        // Auto-fill site location if it matches exactly
                                         const matchedProject = availableProjects.find(p => p.ref === val.trim().toUpperCase());
                                         if (matchedProject && matchedProject.site && !job.site) {
                                             onChange(job.id, 'site', matchedProject.site);
                                         }
                                     }}
                                 />
-                                <datalist id={`project-refs-list-${job.id}`}>
-                                    {availableProjects.map(p => (
-                                        <option key={p.ref} value={p.ref}>{p.site}</option>
-                                    ))}
-                                </datalist>
+                                
+                                {/* Dropdown List */}
+                                {showProjectDropdown && filteredProjects.length > 0 && (
+                                    <ul className="absolute z-50 w-full bg-slate-800 border border-slate-600 rounded-xl mt-1 max-h-48 overflow-y-auto shadow-2xl custom-scrollbar top-full left-0">
+                                        {filteredProjects.map(p => (
+                                            <li 
+                                                key={p.ref} 
+                                                className="p-3 text-sm text-slate-300 hover:bg-asms-orange hover:text-white cursor-pointer border-b border-slate-700 last:border-0 transition-colors"
+                                                onClick={() => {
+                                                    onChange(job.id, 'asmsRef', p.ref);
+                                                    if (p.site && !job.site) {
+                                                        onChange(job.id, 'site', p.site);
+                                                    }
+                                                    setShowProjectDropdown(false);
+                                                }}
+                                            >
+                                                <div className="font-bold">{p.ref}</div>
+                                                <div className="text-xs opacity-75">{p.site}</div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                         </div>
                     )}
@@ -628,7 +678,7 @@
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/30 border border-white/5 p-4 rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/30 border border-white/5 p-4 rounded-xl relative z-0">
                 <TimeInput
                   label="Start"
                   value={job.startTime}
@@ -682,8 +732,6 @@
           const [signatureData, setSignatureData] = useState('');
           const [onCall, setOnCall] = useState(false);
           
-          // DEFAULT PROJECTS LIST
-          // This will be overridden by the Google Sheets fetch below
           const [availableProjects, setAvailableProjects] = useState([
               { ref: 'ME2007', site: 'HSE Hospital - General' },
               { ref: 'ME2800', site: 'HSE Clinic - Specialists' },
@@ -694,7 +742,6 @@
           const jotFormRef = useRef(null);
           const isSubmittingRef = useRef(false);
 
-          // GOOGLE SHEETS FETCH INTEGRATION
           useEffect(() => {
               const fetchProjects = async () => {
                   try {
@@ -730,12 +777,10 @@
 
                       const projectsMap = new Map();
                       
-                      // Parse header to find column indices
                       const headers = parseCSVRow(rows[0]).map(h => h.toLowerCase());
                       let refIdx = headers.findIndex(h => h.includes('ref'));
                       let siteIdx = headers.findIndex(h => h.includes('site') || h.includes('location'));
                       
-                      // Default to Col 0 and Col 1 if headers are named differently
                       if (refIdx === -1) refIdx = 0;
                       if (siteIdx === -1) siteIdx = 1;
                       
@@ -745,9 +790,6 @@
                           const site = cols[siteIdx] || '';
                           
                           if (ref && !ref.toLowerCase().includes('project ref')) {
-                              // By using a Map, we automatically deduplicate duplicate Project Refs.
-                              // If ME2800 appears multiple times (e.g., an old log), the LAST one 
-                              // in the sheet will overwrite previous ones, fixing the wrong site issue.
                               projectsMap.set(ref.toUpperCase(), site);
                           }
                       }
@@ -837,7 +879,7 @@
                   if (lastJob.finishTime) {
                       defaultStart = lastJob.finishTime;
                   }
-                  defaultFinish = ''; // Blank finish time for 2nd job onwards
+                  defaultFinish = ''; 
               }
               
               const newJob = { 
@@ -880,7 +922,6 @@
               }
               for (const job of currentJobs) {
                   if (!job.asmsRef || !job.startTime || !job.finishTime) return false;
-                  // Updated validation check for BOTH ME2007 and ME2800
                   const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef.trim().toUpperCase());
                   if (isHSE) {
                       if (!job.hsePo || !job.site || !job.hseDesc || !job.status) return false;
@@ -897,7 +938,6 @@
                   const jobs = timesheetData[day];
                   for (const job of jobs) {
                       if (!job.asmsRef || !job.startTime || !job.finishTime) return false;
-                      // Updated validation check for BOTH ME2007 and ME2800
                       const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef.trim().toUpperCase());
                       if (isHSE) {
                           if (!job.hsePo || !job.site || !job.hseDesc || !job.status) return false;
@@ -1000,7 +1040,6 @@
               return { total, normal, ot15, ot20 };
           }, [timesheetData, weekStartDate]);
 
-          // Calculate summary for review table
           const daysSummary = useMemo(() => {
               return [0,1,2,3,4,5,6].map(offset => {
                   const d = new Date(weekStartDate); d.setDate(d.getDate() + offset);
