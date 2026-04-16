@@ -1107,13 +1107,17 @@
                   inputs.push(<input key={`r${i}c0`} type="hidden" name={`q5_typeA[${rowIdx}][0]`} value={formatDateEU(job.date) || ''} />);
                   inputs.push(<input key={`r${i}c1`} type="hidden" name={`q5_typeA[${rowIdx}][1]`} value={job.asmsRef || ''} />);
                   inputs.push(<input key={`r${i}c2`} type="hidden" name={`q5_typeA[${rowIdx}][2]`} value={job.hsePo || ''} />);
-                  const combinedDesc = job.site ? `${job.site} - ${job.hseDesc || ''}` : (job.hseDesc || '');
+                  
+                  let combinedDesc = job.site ? `${job.site} - ${job.hseDesc || ''}` : (job.hseDesc || '');
+                  if (job.requestedBy) {
+                      combinedDesc += ` [Req: ${job.requestedBy}]`;
+                  }
                   inputs.push(<input key={`r${i}c3`} type="hidden" name={`q5_typeA[${rowIdx}][3]`} value={combinedDesc} />);
+                  
                   inputs.push(<input key={`r${i}c4`} type="hidden" name={`q5_typeA[${rowIdx}][4]`} value={job.status || ''} />);
                   inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.startTime || ''} />);
                   inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.finishTime || ''} />);
                   inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={durationStr} />);
-                  inputs.push(<input key={`r${i}c8`} type="hidden" name={`q5_typeA[${rowIdx}][8]`} value={job.requestedBy || ''} />);
               }
               return inputs;
           };
