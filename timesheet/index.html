@@ -639,16 +639,29 @@
                     )}
                 </div>
                 {isHSE && (
-                    <div className="animate-fade-in mb-4">
-                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
-                             Requested By <span className="text-asms-orange">*</span>
-                         </label>
-                        <input 
-                            className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('requestedBy') ? 'border-red-500/50 bg-red-900/10' : ''}`}
-                            placeholder="Name of requester"
-                            value={job.requestedBy || ''}
-                            onChange={(e) => onChange(job.id, 'requestedBy', e.target.value)}
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in mb-4">
+                        <div>
+                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                 Site / Location <span className="text-asms-orange">*</span>
+                             </label>
+                            <input 
+                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('site') ? 'border-red-500/50 bg-red-900/10' : ''}`}
+                                placeholder="e.g. St. Stephen's Hospital"
+                                value={job.site}
+                                onChange={(e) => onChange(job.id, 'site', e.target.value)}
+                            />
+                        </div>
+                        <div>
+                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                 Requested By <span className="text-asms-orange">*</span>
+                             </label>
+                            <input 
+                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('requestedBy') ? 'border-red-500/50 bg-red-900/10' : ''}`}
+                                placeholder="Name of requester"
+                                value={job.requestedBy || ''}
+                                onChange={(e) => onChange(job.id, 'requestedBy', e.target.value)}
+                            />
+                        </div>
                     </div>
                 )}
                 {isHSE && (
@@ -1224,45 +1237,49 @@
                 </div>
 
                 {currentDayIndex < 7 && (
-                    <div className="animate-slide-up">
-                        <div className="flex justify-between items-end mb-4">
-                            <div>
-                                <h2 className="text-xl font-bold text-white">{dateDisplay}</h2>
-                                <p className="text-slate-400 text-sm mt-1">
-                                    Daily Total: <span className="text-asms-orange font-bold">{dailyStats.total} hrs</span> 
-                                    (N: {dailyStats.normal} | 1.5x: {dailyStats.ot15} | 2.0x: {dailyStats.ot20})
-                                </p>
-                            </div>
+                    <div className="mb-6 animate-slide-up">
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">{dateDisplay}</h2>
+                            <span className="bg-asms-orange/20 text-asms-orange border border-asms-orange/30 text-xs px-3 py-1 rounded-full font-bold">{currentJobs.length} Jobs</span>
                         </div>
 
-                        {currentJobs.length === 0 ? (
-                            <div className="glass-panel rounded-2xl p-8 text-center border-dashed mb-4">
-                                <p className="text-slate-400 mb-4">No jobs added for this day.</p>
-                                <button onClick={handleAddJob} className="bg-asms-orange/10 text-asms-orange hover:bg-asms-orange hover:text-white px-6 py-3 rounded-xl font-bold transition-all inline-flex items-center gap-2">
-                                    <Pen size={18} /> Add First Job
-                                </button>
+                        {currentJobs.length === 0 && (
+                            <div className="text-center py-12 glass-panel rounded-2xl border border-dashed border-slate-600 mb-4">
+                                <Clock size={48} className="mx-auto text-slate-600 mb-4" />
+                                <p className="text-slate-400 mb-4 text-sm">No jobs logged for this day.</p>
+                                <button onClick={handleAddJob} className="bg-asms-orange hover:bg-orange-600 text-white font-bold transition-colors text-sm py-3 px-6 rounded-xl shadow-lg shadow-orange-900/20">+ Add Job Entry</button>
                             </div>
-                        ) : (
-                            <>
-                                {currentJobs.map((job, idx) => (
-                                    <JobRow 
-                                        key={job.id} 
-                                        job={job} 
-                                        index={idx} 
-                                        onChange={handleUpdateJob} 
-                                        onRemove={() => handleRemoveJob(job.id)} 
-                                        hasOverlap={!!jobOverlaps[job.id]} 
-                                        overlapMessage={jobOverlaps[job.id]} 
-                                        showValidation={showValidation} 
-                                        availableProjects={availableProjects}
-                                        dayIndex={new Date(activeDateStr).getDay()}
-                                    />
-                                ))}
-                                <button onClick={handleAddJob} className="w-full glass-panel py-4 rounded-2xl text-asms-orange font-bold hover:bg-asms-orange/10 transition-all border-dashed mb-4 flex justify-center items-center gap-2">
-                                    <Pen size={18} /> Add Another Job
-                                </button>
-                            </>
                         )}
+
+                        {currentJobs.map((job, idx) => (
+                            <JobRow 
+                                key={job.id} 
+                                job={job} 
+                                index={idx} 
+                                onChange={handleUpdateJob} 
+                                onRemove={() => handleRemoveJob(job.id)} 
+                                hasOverlap={!!jobOverlaps[job.id]} 
+                                overlapMessage={jobOverlaps[job.id]} 
+                                showValidation={showValidation} 
+                                availableProjects={availableProjects} 
+                            />
+                        ))}
+
+                        {currentJobs.length > 0 && (
+                        <button onClick={handleAddJob} disabled={currentJobs.length >= 10} className="w-full mt-2 py-4 glass-panel border border-white/10 hover:bg-white/5 text-slate-300 font-bold rounded-xl active:scale-98 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50">+ Add Another Job</button>
+                        )}
+                        
+                        <div className="mt-6 glass-panel rounded-2xl p-6 shadow-xl">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5 flex items-center gap-2"><Clock size={14} className="text-asms-orange"/> Daily Summary</h3>
+                            <div className="grid grid-cols-2 gap-4 mb-5 pb-5 border-b border-white/5">
+                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5"><div className="text-slate-500 text-[10px] uppercase font-bold mb-2">Total Paid</div><div className="text-2xl font-bold text-white">{formatDuration(dailyStats.total)}</div></div>
+                                <div className="bg-asms-orange/10 rounded-xl p-4 border border-asms-orange/20"><div className="text-asms-orange text-[10px] uppercase font-bold mb-2">Normal</div><div className="text-xl font-bold text-white">{formatDuration(dailyStats.normal)}</div></div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5"><div className="text-slate-500 text-[10px] uppercase font-bold mb-2">1.5x</div><div className="text-lg font-bold text-slate-300">{formatDuration(dailyStats.ot15)}</div></div>
+                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5"><div className="text-slate-500 text-[10px] uppercase font-bold mb-2">2.0x</div><div className="text-lg font-bold text-slate-300">{formatDuration(dailyStats.ot20)}</div></div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -1272,137 +1289,222 @@
                             <CheckCircle className="text-asms-orange" /> Timesheet Summary
                         </h2>
                         
-                        <div className="glass-panel rounded-2xl p-5 mb-6">
-                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Weekly Hours</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5 text-center">
-                                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">Normal</div>
-                                    <div className="text-2xl font-bold text-blue-300">{weekStats.normal.toFixed(2)}</div>
-                                </div>
-                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5 text-center">
-                                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">1.5x Overtime</div>
-                                    <div className="text-2xl font-bold text-yellow-300">{weekStats.ot15.toFixed(2)}</div>
-                                </div>
-                                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5 text-center">
-                                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">2.0x Overtime</div>
-                                    <div className="text-2xl font-bold text-red-300">{weekStats.ot20.toFixed(2)}</div>
-                                </div>
-                                <div className="bg-asms-orange/10 rounded-xl p-4 border border-asms-orange/30 text-center">
-                                    <div className="text-xs text-asms-orange uppercase font-bold mb-1">Total</div>
-                                    <div className="text-2xl font-bold text-asms-orange">{weekStats.total.toFixed(2)}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="glass-panel rounded-2xl p-5 mb-6">
-                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Extra Info</h3>
-                            
-                            <div className="mb-5 bg-slate-900/50 p-4 rounded-xl border border-white/5">
-                                <label className="flex items-center gap-3 cursor-pointer">
-                                    <input type="checkbox" checked={onCall} onChange={(e) => setOnCall(e.target.checked)} className="w-5 h-5 accent-asms-orange rounded" />
-                                    <span className="font-bold text-slate-300">I was On-Call this weekend</span>
-                                </label>
-                            </div>
-
-                            <div className="mb-5">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 ml-1">Expenses (€)</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Euro size={18} /></div>
-                                    <input type="number" step="0.01" value={expenses} onChange={e => setExpenses(e.target.value)} placeholder="0.00" className="w-full glass-input rounded-xl py-3.5 pl-11 pr-4 text-sm transition-all" />
-                                </div>
-                            </div>
-                            
-                            <div className="mb-5">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 ml-1">Notes / Comments</label>
-                                <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any extra information for the office..." rows={3} className="w-full glass-input rounded-xl px-4 py-3 text-sm transition-all resize-none"></textarea>
-                            </div>
-                        </div>
-
-                        <div className="glass-panel rounded-2xl p-5 mb-6 signature-section">
-                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Sign Timesheet <span className="text-asms-orange">*</span></h3>
-                            <SignaturePad onSave={setSignatureData} />
-                            {showValidation && (!signatureData || signatureData.length < 100) && (
-                                <p className="text-red-400 text-[10px] mt-2 flex items-center gap-1 font-bold">
-                                    <AlertCircle size={12} /> Please sign before submitting
-                                </p>
-                            )}
-                        </div>
-
                         <form 
-                            ref={jotFormRef} 
+                            ref={jotFormRef}
                             action="https://submit.jotform.com/submit/260766159573064" 
-                            method="POST" 
-                            target="jotform_iframe" 
+                            method="post" 
+                            target="jotform_iframe"
                             encType="multipart/form-data"
-                            className="hidden"
+                            name="form_260766159573064" 
+                            id="260766159573064" 
+                            acceptCharset="utf-8" 
+                            autoComplete="on"
                         >
                             <input type="hidden" name="formID" value="260766159573064" />
                             <input type="hidden" name="simple_spc" value="260766159573064-260766159573064" />
                             
-                            {/* Technician Details */}
+                            {/* Jotform Security & Anti-Spam Tracking */}
+                            <input type="hidden" name="jsExecutionTracker" value="build-date-1776377925396" />
+                            <input type="hidden" name="submitSource" value="unknown" />
+
+                            {/* Required Matrix Mapping Configs */}
+                            <input type="hidden" name="q5_typeA[colIds]" value='["9","5","6","7","11","2","3","8"]' />
+                            <input type="hidden" name="q5_typeA[rowIds]" value='["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","21","22","23","24","25","26","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57"]' />
+                            
                             <input type="hidden" name="q3_name[first]" value={userDetails.firstName} />
                             <input type="hidden" name="q3_name[last]" value={userDetails.lastName} />
                             <input type="hidden" name="q10_email" value={userDetails.email} />
-                            
-                            {/* Date (Required by Jotform) */}
                             <input type="hidden" name="q4_date[day]" value={formDay} />
                             <input type="hidden" name="q4_date[month]" value={formMonth} />
                             <input type="hidden" name="q4_date[year]" value={formYear} />
-
-                            {/* On Call Checkboxes (Requires array syntax for Jotform) */}
-                            {onCall && <input type="hidden" name="q14_onCall[]" value="Yes" />}
-                            {onCall && <input type="hidden" name="q433_onCall433[]" value="Yes" />}
+                            <input type="hidden" name="q6_totalHours" value={formatDurationDecimal(weekStats.total)} />
+                            <input type="hidden" name="q7_normalHours" value={formatDurationDecimal(weekStats.normal)} />
+                            <input type="hidden" name="q8_timeAnd" value={formatDurationDecimal(weekStats.ot15)} />
+                            <input type="hidden" name="q9_doubleTime" value={formatDurationDecimal(weekStats.ot20)} />
                             
-                            {/* Extras */}
-                            <input type="hidden" name="q12_notes" value={notes} />
-                            <input type="hidden" name="q434_expenses" value={expenses} />
                             <input type="hidden" name="q13_signature" value={signatureData} />
-                            
-                            {/* Summary Hours */}
-                            <input type="hidden" name="q6_totalHours" value={weekStats.total.toFixed(2)} />
-                            <input type="hidden" name="q7_normalHours" value={weekStats.normal.toFixed(2)} />
-                            <input type="hidden" name="q8_timeAnd" value={weekStats.ot15.toFixed(2)} />
-                            <input type="hidden" name="q9_doubleTime" value={weekStats.ot20.toFixed(2)} />
-                            
-                            {/* Job Matrix */}
-                            {renderHiddenMatrixInputs()}
-                        </form>
+                            {onCall && (
+                                <>
+                                    <input type="hidden" name="q14_onCall[]" value="Yes" />
+                                    <input type="hidden" name="q433_onCall433[]" value="Yes" />
+                                </>
+                            )}
 
+                            {renderHiddenMatrixInputs()}
+
+                            {/* DAILY HOURS MATRIX SUMMARY */}
+                            <div className="glass-panel rounded-2xl p-6 mb-6 overflow-hidden border border-white/10">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Clock size={18} className="text-asms-orange" />
+                                    Daily Schedule Summary
+                                </h3>
+                                <div className="overflow-x-auto no-scrollbar -mx-2 px-2">
+                                    <table className="w-full text-center text-sm border-collapse min-w-[400px]">
+                                        <thead>
+                                            <tr>
+                                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                                    <th key={day} className="p-2 pb-3 text-slate-400 font-bold border-b border-slate-700">{day}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                {daysSummary.map((ds, i) => (
+                                                    <td key={`start-${i}`} className="p-3 text-slate-300 font-medium border-b border-slate-800 bg-slate-800/20">{ds.start}</td>
+                                                ))}
+                                            </tr>
+                                            <tr>
+                                                {daysSummary.map((ds, i) => (
+                                                    <td key={`finish-${i}`} className="p-3 text-slate-300 font-medium bg-slate-800/10">{ds.finish}</td>
+                                                ))}
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="glass-panel rounded-2xl p-5 mb-6">
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Weekly Hours</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5 text-center">
+                                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Normal</div>
+                                        <div className="text-2xl font-bold text-blue-300">{weekStats.normal.toFixed(2)}</div>
+                                    </div>
+                                    <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5 text-center">
+                                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">1.5x Overtime</div>
+                                        <div className="text-2xl font-bold text-yellow-300">{weekStats.ot15.toFixed(2)}</div>
+                                    </div>
+                                    <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5 text-center">
+                                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">2.0x Overtime</div>
+                                        <div className="text-2xl font-bold text-red-300">{weekStats.ot20.toFixed(2)}</div>
+                                    </div>
+                                    <div className="bg-asms-orange/10 rounded-xl p-4 border border-asms-orange/30 text-center">
+                                        <div className="text-xs text-asms-orange uppercase font-bold mb-1">Total</div>
+                                        <div className="text-2xl font-bold text-asms-orange">{weekStats.total.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass-panel rounded-2xl p-6 mb-6">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Edit size={18} className="text-asms-orange" />
+                                    Notes
+                                </h3>
+                                <textarea 
+                                    name="q12_notes"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Add any additional notes here..."
+                                    className="w-full glass-input rounded-xl p-4 text-sm transition-all placeholder-slate-500 min-h-[100px]"
+                                />
+                            </div>
+
+                            <div className="glass-panel rounded-2xl p-6 mb-6">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Clock size={18} className="text-asms-orange" />
+                                    On Call
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setOnCall(v => !v)}
+                                    className={`w-full flex items-center justify-center gap-3 py-4 px-4 rounded-xl border-2 font-bold text-sm transition-all ${onCall ? 'bg-asms-orange/20 border-asms-orange text-asms-orange shadow-lg shadow-orange-900/20' : 'bg-slate-900/50 border-white/10 text-slate-400 hover:border-white/20'}`}
+                                >
+                                    <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${onCall ? 'bg-asms-orange border-asms-orange' : 'border-slate-500'}`}>
+                                        {onCall && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                    </span>
+                                    On Call Worked
+                                </button>
+                            </div>
+
+                            <div className={`signature-section glass-panel rounded-2xl p-6 mb-6 ${showValidation && (!signatureData || signatureData.length < 100) ? 'border-red-500/50 bg-red-900/10' : ''}`}>
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Pen size={18} className="text-asms-orange" />
+                                    Timesheet Signature {showValidation && (!signatureData || signatureData.length < 100) && <span className="text-red-500 text-[10px] normal-case ml-2">(Required)</span>}
+                                </h3>
+                                <SignaturePad onSave={setSignatureData} />
+                                {showValidation && (!signatureData || signatureData.length < 100) && (
+                                    <p className="text-red-400 text-xs mt-2 flex items-center gap-1"><AlertCircle size={12}/> Please sign above to continue</p>
+                                )}
+                            </div>
+
+                            <div className="glass-panel rounded-2xl p-6 mb-6 border border-dashed border-slate-500">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <UploadCloud size={18} className="text-asms-orange" />
+                                    Upload Receipts / Files
+                                </h3>
+                                <div className="text-center">
+                                    <input 
+                                        type="file" 
+                                        id="input_11" 
+                                        name="q11_fileUpload[]" 
+                                        multiple 
+                                        className="block w-full text-sm text-slate-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-asms-orange file:text-white hover:file:bg-orange-600 transition-all cursor-pointer"
+                                        onChange={(e) => setFileCount(e.target.files.length)}
+                                    />
+                                    <p className="text-xs text-slate-500 mt-3">
+                                        {fileCount > 0 ? `${fileCount} file(s) selected` : "Select images or PDFs"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="glass-panel rounded-2xl p-6 mb-24">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Euro size={18} className="text-asms-orange" />
+                                    Expenses Claim
+                                </h3>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold">
+                                        €
+                                    </div>
+                                    <input 
+                                        type="number"
+                                        name="q434_expenses"
+                                        value={expenses}
+                                        onChange={(e) => setExpenses(e.target.value)}
+                                        placeholder="0.00"
+                                        step="0.01"
+                                        min="0"
+                                        className="w-full glass-input rounded-xl block py-3.5 pl-10 pr-4 text-sm transition-all placeholder-slate-500"
+                                    />
+                                </div>
+                                <p className="text-xs text-slate-500 mt-3">
+                                    Enter total expenses in Euros. Ensure relevant receipts are uploaded above (e.g., M50 tolls, parking).
+                                </p>
+                            </div>
+                        </form>
                     </div>
                 )}
+
               </div>
 
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-900/80 backdrop-blur-md border-t border-white/5 z-40">
+              <div className="fixed bottom-0 left-0 right-0 bg-[#0f172a]/90 backdrop-blur-xl border-t border-white/10 p-5 z-30" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
                 <div className="max-w-3xl mx-auto flex gap-3">
-                    {currentDayIndex > 0 && currentDayIndex < 7 ? (
-                        <button onClick={() => setCurrentDayIndex(p => p - 1)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all">
-                            Back
-                        </button>
-                    ) : currentDayIndex === 7 ? (
-                        <button onClick={() => setCurrentDayIndex(6)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all">
-                            Edit Days
-                        </button>
-                    ) : (
-                        <div className="flex-1"></div>
-                    )}
-                    
-                    {currentDayIndex < 6 ? (
-                        <button onClick={handleNext} className="flex-1 bg-asms-orange hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2">
-                            Next <ChevronRight size={20} />
-                        </button>
-                    ) : currentDayIndex === 6 ? (
-                        <button 
-                            onClick={handleReview} 
-                            className={`flex-1 ${hasAnyOverlaps ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-asms-orange/10 border border-asms-orange/50 hover:bg-asms-orange/20 text-asms-orange'} text-lg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[56px]`}
-                        >
-                            <span>Review</span>
-                            <FileText size={22}/>
-                        </button>
+                    {currentDayIndex < 7 ? (
+                        <>
+                            {currentDayIndex < 6 && (
+                                <button 
+                                    onClick={handleNext}
+                                    disabled={hasAnyOverlaps}
+                                    className={`flex-1 ${hasAnyOverlaps ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-white/10 hover:bg-white/20 text-white'} text-lg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[56px]`}
+                                >
+                                    <span>Next Day</span>
+                                    <ChevronRight size={22}/>
+                                </button>
+                            )}
+                            <button 
+                                onClick={handleReview}
+                                disabled={hasAnyOverlaps}
+                                className={`flex-1 ${hasAnyOverlaps ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-asms-orange/10 border border-asms-orange/50 hover:bg-asms-orange/20 text-asms-orange'} text-lg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[56px]`}
+                            >
+                                <span>Review</span>
+                                <FileText size={22}/>
+                            </button>
+                        </>
                     ) : (
                         <button 
                             onClick={handleSubmit}
                             disabled={hasAnyOverlaps || allWeekJobs.length === 0}
-                            className={`flex-[2] ${hasAnyOverlaps || allWeekJobs.length === 0 ? 'bg-slate-800 text-slate-600 opacity-50 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-green-500 hover:to-green-400 shadow-lg shadow-green-900/50 text-white'} text-lg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[56px]`}
+                            className={`flex-1 ${hasAnyOverlaps || allWeekJobs.length === 0 ? 'bg-slate-800 text-slate-600 opacity-50 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-green-500 hover:to-green-400 shadow-lg shadow-green-900/50 text-white'} text-lg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[56px]`}
                         >
                              <span>Submit Timesheet</span>
                              <Send size={22}/>
