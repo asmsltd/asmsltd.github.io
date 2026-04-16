@@ -1330,19 +1330,25 @@
 
                         <form 
                             ref={jotFormRef} 
-                            action="https://eu-submit.jotform.com/submit/260766159573064" 
+                            action="https://submit.jotform.com/submit/260766159573064" 
                             method="POST" 
                             target="jotform_iframe" 
                             encType="multipart/form-data"
                             className="hidden"
                         >
                             <input type="hidden" name="formID" value="260766159573064" />
+                            <input type="hidden" name="simple_spc" value="260766159573064-260766159573064" />
                             
                             {/* Technician Details */}
                             <input type="hidden" name="q3_name[first]" value={userDetails.firstName} />
                             <input type="hidden" name="q3_name[last]" value={userDetails.lastName} />
                             <input type="hidden" name="q10_email" value={userDetails.email} />
                             
+                            {/* Date (Required by Jotform) */}
+                            <input type="hidden" name="q4_date[day]" value={formDay} />
+                            <input type="hidden" name="q4_date[month]" value={formMonth} />
+                            <input type="hidden" name="q4_date[year]" value={formYear} />
+
                             {/* On Call Checkboxes (Requires array syntax for Jotform) */}
                             {onCall && <input type="hidden" name="q14_onCall[]" value="Yes" />}
                             {onCall && <input type="hidden" name="q433_onCall433[]" value="Yes" />}
