@@ -1330,21 +1330,35 @@
 
                         <form 
                             ref={jotFormRef} 
-                            action="https://submit.jotform.com/submit/260766159573064" 
+                            action="https://eu-submit.jotform.com/submit/260766159573064" 
                             method="POST" 
                             target="jotform_iframe" 
                             encType="multipart/form-data"
                             className="hidden"
                         >
                             <input type="hidden" name="formID" value="260766159573064" />
-                            <input type="hidden" name="q3_technicianName[first]" value={userDetails.firstName} />
-                            <input type="hidden" name="q3_technicianName[last]" value={userDetails.lastName} />
-                            <input type="hidden" name="q4_email" value={userDetails.email} />
-                            <input type="hidden" name="q14_onCall" value={onCall ? "Yes" : "No"} />
-                            <input type="hidden" name="q433_onCallSun" value={onCall ? "Yes" : "No"} />
+                            
+                            {/* Technician Details */}
+                            <input type="hidden" name="q3_name[first]" value={userDetails.firstName} />
+                            <input type="hidden" name="q3_name[last]" value={userDetails.lastName} />
+                            <input type="hidden" name="q10_email" value={userDetails.email} />
+                            
+                            {/* On Call Checkboxes (Requires array syntax for Jotform) */}
+                            {onCall && <input type="hidden" name="q14_onCall[]" value="Yes" />}
+                            {onCall && <input type="hidden" name="q433_onCall433[]" value="Yes" />}
+                            
+                            {/* Extras */}
                             <input type="hidden" name="q12_notes" value={notes} />
-                            <input type="hidden" name="expenses" value={expenses} />
+                            <input type="hidden" name="q434_expenses" value={expenses} />
                             <input type="hidden" name="q13_signature" value={signatureData} />
+                            
+                            {/* Summary Hours */}
+                            <input type="hidden" name="q6_totalHours" value={weekStats.total.toFixed(2)} />
+                            <input type="hidden" name="q7_normalHours" value={weekStats.normal.toFixed(2)} />
+                            <input type="hidden" name="q8_timeAnd" value={weekStats.ot15.toFixed(2)} />
+                            <input type="hidden" name="q9_doubleTime" value={weekStats.ot20.toFixed(2)} />
+                            
+                            {/* Job Matrix */}
                             {renderHiddenMatrixInputs()}
                         </form>
 
