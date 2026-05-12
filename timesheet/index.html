@@ -493,10 +493,19 @@
           }
           
           const durationStr = formatDuration(duration);
-          const isInvalid = (field) => showValidation && !job[field];
           
-          const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef?.trim().toUpperCase());
-          const isLeave = LEAVE_TYPES.includes(job.asmsRef?.toUpperCase()?.trim());
+          const refClean = job.asmsRef?.trim().toUpperCase() || '';
+          const isHSE = ['ME2007', 'ME2800'].includes(refClean);
+          // Match anything starting with ME2850 (e.g., ME2850, ME2850A, ME2850B)
+          const isME2850 = refClean.startsWith('ME2850');
+          const showExtraRef = isHSE || isME2850;
+          const isLeave = LEAVE_TYPES.includes(refClean);
+
+          const isInvalid = (field) => {
+              if (!showValidation) return false;
+              if (field === 'worksNo') return !job.hsePo; // Map Works No requirement to hsePo
+              return !job[field];
+          };
 
           let showsLunchDeduction = false;
           if (dayIndex >= 1 && dayIndex <= 5 && duration > 5) showsLunchDeduction = true;
@@ -550,6 +559,7 @@
                                       onChange(job.id, 'asmsRef', isLeave ? '' : job.asmsRef);
                                   } else {
                                       onChange(job.id, 'asmsRef', type.toUpperCase());
+                                      onChange(job.id, 'site', ''); // Clear site for leaves
                                   }
                               }}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-asms-orange text-white' : 'bg-slate-800 text-slate-400 border border-white/5 hover:bg-slate-700'}`}
@@ -561,7 +571,7 @@
               </div>
 
               <div className="space-y-4 mb-5">
-                <div className={`grid gap-4 ${isHSE ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                <div className={`grid gap-4 ${showExtraRef ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                     {!isLeave && (
                         <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
@@ -592,11 +602,13 @@
                                         const val = e.target.value;
                                         onChange(job.id, 'asmsRef', val);
                                         setShowProjectDropdown(true);
-                                        // Auto-fill site location if it matches exactly
+                                        
+                                        // Match project to pull in default Site descriptions
                                         const matchedProject = availableProjects.find(p => p.ref === val.trim().toUpperCase());
-                                        if (matchedProject && matchedProject.site && !job.site) {
+                                        if (matchedProject && matchedProject.site) {
                                             onChange(job.id, 'site', matchedProject.site);
                                         }
+                                        // We no longer clear `site` if no match is found so the user's custom descriptions aren't wiped!
                                     }}
                                 />
                                 
@@ -609,9 +621,7 @@
                                                 className="p-3 text-sm text-slate-300 hover:bg-asms-orange hover:text-white cursor-pointer border-b border-slate-700 last:border-0 transition-colors"
                                                 onClick={() => {
                                                     onChange(job.id, 'asmsRef', p.ref);
-                                                    if (p.site && !job.site) {
-                                                        onChange(job.id, 'site', p.site);
-                                                    }
+                                                    onChange(job.id, 'site', p.site || ''); 
                                                     setShowProjectDropdown(false);
                                                 }}
                                             >
@@ -637,20 +647,38 @@
                             />
                         </div>
                     )}
-                </div>
-                {isHSE && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in mb-4">
-                        <div>
-                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
-                                 Site / Location <span className="text-asms-orange">*</span>
-                             </label>
+                    {isME2850 && (
+                        <div className="animate-fade-in">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                Works No <span className="text-asms-orange">*</span>
+                            </label>
                             <input 
-                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('site') ? 'border-red-500/50 bg-red-900/10' : ''}`}
-                                placeholder="e.g. St. Stephen's Hospital"
-                                value={job.site}
-                                onChange={(e) => onChange(job.id, 'site', e.target.value)}
+                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('worksNo') ? 'border-red-500/50 bg-red-900/10' : ''}`}
+                                placeholder="Works Number"
+                                value={job.hsePo}
+                                onChange={(e) => onChange(job.id, 'hsePo', e.target.value)}
                             />
                         </div>
+                    )}
+                </div>
+
+                {/* Unified Site / Description field always visible for non-leave jobs */}
+                {!isLeave && (
+                    <div className="animate-fade-in mb-4">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                            Site / Job Description <span className="text-asms-orange">*</span>
+                        </label>
+                        <input 
+                            className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('site') ? 'border-red-500/50 bg-red-900/10' : ''}`}
+                            placeholder="e.g. Blarney CNU or Description of Works"
+                            value={job.site}
+                            onChange={(e) => onChange(job.id, 'site', e.target.value)}
+                        />
+                    </div>
+                )}
+
+                {isHSE && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in mb-4">
                         <div>
                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
                                  Requested By <span className="text-asms-orange">*</span>
@@ -662,44 +690,37 @@
                                 onChange={(e) => onChange(job.id, 'requestedBy', e.target.value)}
                             />
                         </div>
-                    </div>
-                )}
-                {isHSE && (
-                    <div className="mt-4 animate-fade-in mb-4">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
-                            Status <span className="text-asms-orange">*</span>
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => onChange(job.id, 'status', 'Complete')}
-                                className={`py-2.5 rounded-lg border-2 font-bold text-xs transition-all ${job.status === 'Complete' ? 'bg-green-500/20 border-green-500 text-green-400' : showValidation && !job.status ? 'border-red-500/50 bg-red-900/10 text-slate-400' : 'border-white/10 bg-slate-900/50 text-slate-400 hover:border-white/20'}`}
-                            >
-                                ✓ Complete
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => onChange(job.id, 'status', 'Ongoing')}
-                                className={`py-2.5 rounded-lg border-2 font-bold text-xs transition-all ${job.status === 'Ongoing' ? 'bg-blue-500/20 border-blue-400 text-blue-300' : showValidation && !job.status ? 'border-red-500/50 bg-red-900/10 text-slate-400' : 'border-white/10 bg-slate-900/50 text-slate-400 hover:border-white/20'}`}
-                            >
-                                ⟳ Ongoing
-                            </button>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                Status <span className="text-asms-orange">*</span>
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onChange(job.id, 'status', 'Complete')}
+                                    className={`py-2 rounded-lg border-2 font-bold text-xs transition-all ${job.status === 'Complete' ? 'bg-green-500/20 border-green-500 text-green-400' : showValidation && !job.status ? 'border-red-500/50 bg-red-900/10 text-slate-400' : 'border-white/10 bg-slate-900/50 text-slate-400 hover:border-white/20'}`}
+                                >
+                                    ✓ Complete
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onChange(job.id, 'status', 'Ongoing')}
+                                    className={`py-2 rounded-lg border-2 font-bold text-xs transition-all ${job.status === 'Ongoing' ? 'bg-blue-500/20 border-blue-400 text-blue-300' : showValidation && !job.status ? 'border-red-500/50 bg-red-900/10 text-slate-400' : 'border-white/10 bg-slate-900/50 text-slate-400 hover:border-white/20'}`}
+                                >
+                                    ⟳ Ongoing
+                                </button>
+                            </div>
                         </div>
-                        {showValidation && !job.status && (
-                            <p className="text-red-400 text-[10px] mt-1 flex items-center gap-1 font-medium">
-                                <AlertCircle size={10} /> Required
-                            </p>
-                        )}
                     </div>
                 )}
                 {isHSE && (
                     <div className="animate-fade-in mb-4">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
-                            Description <span className="text-asms-orange">*</span>
+                            Work Performed <span className="text-asms-orange">*</span>
                         </label>
                         <textarea 
                             className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 min-h-[60px] resize-none ${isInvalid('hseDesc') ? 'border-red-500/50 bg-red-900/10' : ''}`}
-                            placeholder="Work performed..."
+                            placeholder="Detailed work description..."
                             value={job.hseDesc}
                             onChange={(e) => onChange(job.id, 'hseDesc', e.target.value)}
                             rows={2}
@@ -775,6 +796,7 @@
           useEffect(() => {
               const fetchProjects = async () => {
                   try {
+                      // Original stable CSV data source
                       const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQid18QM2wwpphH6_e0VqRmoI5uQxCfaffHw30EGZsQ3znxVYdu_ymiPiQBrr0mQEgfhDhg6kuBXLRq/pub?gid=0&single=true&output=csv';
                       const res = await fetch(sheetUrl);
                       
@@ -809,7 +831,8 @@
                       
                       const headers = parseCSVRow(rows[0]).map(h => h.toLowerCase());
                       let refIdx = headers.findIndex(h => h.includes('ref'));
-                      let siteIdx = headers.findIndex(h => h.includes('site') || h.includes('location'));
+                      let siteIdx = headers.findIndex(h => h.includes('site') || h.includes('location') || h.includes('name'));
+                      let statusIdx = headers.findIndex(h => h.includes('status'));
                       
                       if (refIdx === -1) refIdx = 0;
                       if (siteIdx === -1) siteIdx = 1;
@@ -818,8 +841,9 @@
                           const cols = parseCSVRow(rows[i]);
                           const ref = cols[refIdx] || '';
                           const site = cols[siteIdx] || '';
+                          const status = statusIdx !== -1 ? (cols[statusIdx] || '').trim().toLowerCase() : 'active';
                           
-                          if (ref && !ref.toLowerCase().includes('project ref')) {
+                          if (ref && !ref.toLowerCase().includes('project ref') && status !== 'inactive') {
                               projectsMap.set(ref.toUpperCase(), site);
                           }
                       }
@@ -881,7 +905,7 @@
             setWeekStartDate(formatDate(selected));
           };
 
-          const getLastAsmsRef = () => {
+          const getLastAsmsRefAndSite = () => {
             const allDays = Object.keys(timesheetData).sort();
             for (let i = allDays.length - 1; i >= 0; i--) {
                 const dayJobs = timesheetData[allDays[i]];
@@ -889,18 +913,18 @@
                     for (let j = dayJobs.length - 1; j >= 0; j--) {
                         const ref = dayJobs[j].asmsRef;
                         if (ref && !LEAVE_TYPES.includes(ref.toUpperCase().trim())) {
-                            return ref;
+                            return { ref, site: dayJobs[j].site || '' };
                         }
                     }
                 }
             }
-            return '';
+            return { ref: '', site: '' };
           };
 
           const handleAddJob = () => {
             setTimesheetData(prev => {
               const dayJobs = prev[activeDateStr] || [];
-              const defaultAsmsRef = getLastAsmsRef();
+              const { ref: defaultAsmsRef, site: defaultSite } = getLastAsmsRefAndSite();
               let defaultStart = '08:00';
               let defaultFinish = currentDayIndex === 4 ? '16:00' : '16:30'; 
               
@@ -920,7 +944,7 @@
                   requestedBy: '',
                   startTime: defaultStart, 
                   finishTime: defaultFinish, 
-                  site: '', 
+                  site: defaultSite, 
                   status: '' 
               };
               return {
@@ -953,9 +977,21 @@
               }
               for (const job of currentJobs) {
                   if (!job.asmsRef || !job.startTime || !job.finishTime) return false;
-                  const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef.trim().toUpperCase());
+                  
+                  const refClean = job.asmsRef.trim().toUpperCase();
+                  const isLeave = LEAVE_TYPES.includes(refClean);
+                  
+                  // Universally require site/description for all non-leave
+                  if (!isLeave && !job.site) return false;
+
+                  const isHSE = ['ME2007', 'ME2800'].includes(refClean);
+                  const isME2850 = refClean.startsWith('ME2850');
+                  
                   if (isHSE) {
                       if (!job.hsePo || !job.hseDesc || !job.status || !job.requestedBy) return false;
+                  }
+                  if (isME2850) {
+                      if (!job.hsePo) return false; // This works no field maps to hsePo
                   }
               }
               return true;
@@ -969,9 +1005,19 @@
                   const jobs = timesheetData[day];
                   for (const job of jobs) {
                       if (!job.asmsRef || !job.startTime || !job.finishTime) return false;
-                      const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef.trim().toUpperCase());
+                      
+                      const refClean = job.asmsRef.trim().toUpperCase();
+                      const isLeave = LEAVE_TYPES.includes(refClean);
+                      if (!isLeave && !job.site) return false;
+
+                      const isHSE = ['ME2007', 'ME2800'].includes(refClean);
+                      const isME2850 = refClean.startsWith('ME2850');
+                      
                       if (isHSE) {
                           if (!job.hsePo || !job.hseDesc || !job.status || !job.requestedBy) return false;
+                      }
+                      if (isME2850) {
+                          if (!job.hsePo) return false;
                       }
                   }
               }
@@ -1104,9 +1150,10 @@
                   
                   const rowIdx = i;
 
-                  inputs.push(<input key={`r${i}c0`} type="hidden" name={`q5_typeA[${rowIdx}][0]`} value={formatDateEU(job.date) || ''} />);
-                  inputs.push(<input key={`r${i}c1`} type="hidden" name={`q5_typeA[${rowIdx}][1]`} value={job.asmsRef || ''} />);
-                  inputs.push(<input key={`r${i}c2`} type="hidden" name={`q5_typeA[${rowIdx}][2]`} value={job.hsePo || ''} />);
+                  // FIX: We must use Jotform's specific internal column IDs to ensure the payload is accepted and not dropped.
+                  inputs.push(<input key={`r${i}c0`} type="hidden" name={`q5_typeA[${rowIdx}][9]`} value={formatDateEU(job.date) || ''} />);
+                  inputs.push(<input key={`r${i}c1`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.asmsRef || ''} />);
+                  inputs.push(<input key={`r${i}c2`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.hsePo || ''} />);
                   
                   const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef?.trim().toUpperCase());
                   let combinedDesc = "";
@@ -1118,12 +1165,12 @@
                   } else {
                       combinedDesc = job.site || '';
                   }
-                  inputs.push(<input key={`r${i}c3`} type="hidden" name={`q5_typeA[${rowIdx}][3]`} value={combinedDesc} />);
                   
-                  inputs.push(<input key={`r${i}c4`} type="hidden" name={`q5_typeA[${rowIdx}][4]`} value={job.status || ''} />);
-                  inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.startTime || ''} />);
-                  inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.finishTime || ''} />);
-                  inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={durationStr} />);
+                  inputs.push(<input key={`r${i}c3`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={combinedDesc} />);
+                  inputs.push(<input key={`r${i}c4`} type="hidden" name={`q5_typeA[${rowIdx}][11]`} value={job.status || ''} />);
+                  inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][2]`} value={job.startTime || ''} />);
+                  inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][3]`} value={job.finishTime || ''} />);
+                  inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][8]`} value={durationStr} />);
               }
               return inputs;
           };
@@ -1261,7 +1308,8 @@
                                 hasOverlap={!!jobOverlaps[job.id]} 
                                 overlapMessage={jobOverlaps[job.id]} 
                                 showValidation={showValidation} 
-                                availableProjects={availableProjects} 
+                                availableProjects={availableProjects}
+                                dayIndex={new Date(activeDateStr).getDay()} 
                             />
                         ))}
 
