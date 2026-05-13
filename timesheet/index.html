@@ -496,14 +496,13 @@
           
           const refClean = job.asmsRef?.trim().toUpperCase() || '';
           const isHSE = ['ME2007', 'ME2800'].includes(refClean);
-          // Match anything starting with ME2850 (e.g., ME2850, ME2850A, ME2850B)
           const isME2850 = refClean.startsWith('ME2850');
           const showExtraRef = isHSE || isME2850;
           const isLeave = LEAVE_TYPES.includes(refClean);
 
           const isInvalid = (field) => {
               if (!showValidation) return false;
-              if (field === 'worksNo') return !job.hsePo; // Map Works No requirement to hsePo
+              if (field === 'worksNo') return !job.hsePo; 
               return !job[field];
           };
 
@@ -512,7 +511,6 @@
           if (dayIndex === 6 && duration > 8) showsLunchDeduction = true;
           if (dayIndex === 0 && duration >= 8) showsLunchDeduction = true;
 
-          // Custom filter for our dropdown
           const filteredProjects = availableProjects.filter(p =>
               p.ref.toLowerCase().includes((job.asmsRef || '').toLowerCase()) ||
               p.site.toLowerCase().includes((job.asmsRef || '').toLowerCase())
@@ -546,7 +544,6 @@
                 </button>
               </div>
 
-              {/* Type Selector */}
               <div className="flex flex-wrap gap-2 mb-4">
                   {['Work', 'Training', 'Bank Holiday', 'Annual Leave', 'CIF Holiday', 'Sick'].map(type => {
                       const isSelected = type === 'Work' ? !isLeave : job.asmsRef?.toUpperCase()?.trim() === type.toUpperCase();
@@ -559,7 +556,7 @@
                                       onChange(job.id, 'asmsRef', isLeave ? '' : job.asmsRef);
                                   } else {
                                       onChange(job.id, 'asmsRef', type.toUpperCase());
-                                      onChange(job.id, 'site', ''); // Clear site for leaves
+                                      onChange(job.id, 'site', ''); 
                                   }
                               }}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-asms-orange text-white' : 'bg-slate-800 text-slate-400 border border-white/5 hover:bg-slate-700'}`}
@@ -578,7 +575,6 @@
                                 ASMS Project Ref <span className="text-asms-orange">*</span>
                             </label>
                             
-                            {/* CUSTOM DROPDOWN TO PREVENT KEYBOARD OVERLAP */}
                             <div className="relative" ref={projectInputRef}>
                                 <input 
                                     type="text"
@@ -587,7 +583,6 @@
                                     value={job.asmsRef}
                                     onFocus={(e) => {
                                         setShowProjectDropdown(true);
-                                        // Scroll to center so keyboard opens below the field and dropdown
                                         setTimeout(() => {
                                             if (e.target) {
                                                 e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -595,7 +590,6 @@
                                         }, 300);
                                     }}
                                     onBlur={() => {
-                                        // Delay hiding to allow click event on option to fire
                                         setTimeout(() => setShowProjectDropdown(false), 200);
                                     }}
                                     onChange={(e) => {
@@ -603,16 +597,13 @@
                                         onChange(job.id, 'asmsRef', val);
                                         setShowProjectDropdown(true);
                                         
-                                        // Match project to pull in default Site descriptions
                                         const matchedProject = availableProjects.find(p => p.ref === val.trim().toUpperCase());
                                         if (matchedProject && matchedProject.site) {
                                             onChange(job.id, 'site', matchedProject.site);
                                         }
-                                        // We no longer clear `site` if no match is found so the user's custom descriptions aren't wiped!
                                     }}
                                 />
                                 
-                                {/* Dropdown List */}
                                 {showProjectDropdown && filteredProjects.length > 0 && (
                                     <ul className="absolute z-50 w-full bg-slate-800 border border-slate-600 rounded-xl mt-1 max-h-48 overflow-y-auto shadow-2xl custom-scrollbar top-full left-0">
                                         {filteredProjects.map(p => (
@@ -662,7 +653,6 @@
                     )}
                 </div>
 
-                {/* Unified Site / Description field always visible for non-leave jobs */}
                 {!isLeave && (
                     <div className="animate-fade-in mb-4">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
@@ -1150,10 +1140,10 @@
                   
                   const rowIdx = i;
 
-                  // FIX: We must use Jotform's specific internal column IDs to ensure the payload is accepted and not dropped.
-                  inputs.push(<input key={`r${i}c0`} type="hidden" name={`q5_typeA[${rowIdx}][9]`} value={formatDateEU(job.date) || ''} />);
-                  inputs.push(<input key={`r${i}c1`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.asmsRef || ''} />);
-                  inputs.push(<input key={`r${i}c2`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.hsePo || ''} />);
+                  // FIX: Map strictly to Jotform's visual 0-7 column layout to fix the PDF outputs
+                  inputs.push(<input key={`r${i}c0`} type="hidden" name={`q5_typeA[${rowIdx}][0]`} value={formatDateEU(job.date) || ''} />);
+                  inputs.push(<input key={`r${i}c1`} type="hidden" name={`q5_typeA[${rowIdx}][1]`} value={job.asmsRef || ''} />);
+                  inputs.push(<input key={`r${i}c2`} type="hidden" name={`q5_typeA[${rowIdx}][2]`} value={job.hsePo || ''} />);
                   
                   const isHSE = ['ME2007', 'ME2800'].includes(job.asmsRef?.trim().toUpperCase());
                   let combinedDesc = "";
@@ -1166,11 +1156,11 @@
                       combinedDesc = job.site || '';
                   }
                   
-                  inputs.push(<input key={`r${i}c3`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={combinedDesc} />);
-                  inputs.push(<input key={`r${i}c4`} type="hidden" name={`q5_typeA[${rowIdx}][11]`} value={job.status || ''} />);
-                  inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][2]`} value={job.startTime || ''} />);
-                  inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][3]`} value={job.finishTime || ''} />);
-                  inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][8]`} value={durationStr} />);
+                  inputs.push(<input key={`r${i}c3`} type="hidden" name={`q5_typeA[${rowIdx}][3]`} value={combinedDesc} />);
+                  inputs.push(<input key={`r${i}c4`} type="hidden" name={`q5_typeA[${rowIdx}][4]`} value={job.status || ''} />);
+                  inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.startTime || ''} />);
+                  inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.finishTime || ''} />);
+                  inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={durationStr} />);
               }
               return inputs;
           };
@@ -1356,7 +1346,7 @@
                             <input type="hidden" name="submitSource" value="unknown" />
 
                             {/* Required Matrix Mapping Configs */}
-                            <input type="hidden" name="q5_typeA[colIds]" value='["9","5","6","7","11","2","3","8"]' />
+                            <input type="hidden" name="q5_typeA[colIds]" value='["0","1","2","3","4","5","6","7"]' />
                             <input type="hidden" name="q5_typeA[rowIds]" value='["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","21","22","23","24","25","26","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57"]' />
                             
                             <input type="hidden" name="q3_name[first]" value={userDetails.firstName} />
