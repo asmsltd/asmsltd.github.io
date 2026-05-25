@@ -708,6 +708,37 @@
                         />
                     </div>
                 )}
+                {isHSE && (
+                    <div className="animate-fade-in mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                Start <span className="text-asms-orange">*</span>
+                            </label>
+                            <select
+                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all ${isInvalid('hseStart') ? 'border-red-500/50 bg-red-900/10' : ''}`}
+                                value={job.hseStart || ''}
+                                onChange={(e) => onChange(job.id, 'hseStart', e.target.value)}
+                                style={{ colorScheme: 'dark' }}
+                            >
+                                <option value="">Select...</option>
+                                <option value="This Week">1. This Week</option>
+                                <option value="Previous Week">2. Previous Week</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                Tie in with <span className="text-asms-orange">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('hseTieInWith') ? 'border-red-500/50 bg-red-900/10' : ''}`}
+                                placeholder="Name(s) you worked with"
+                                value={job.hseTieInWith || ''}
+                                onChange={(e) => onChange(job.id, 'hseTieInWith', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/30 border border-white/5 p-4 rounded-xl relative z-0">
@@ -923,6 +954,8 @@
                   hsePo: '', 
                   hseDesc: '', 
                   requestedBy: '',
+                  hseStart: '',
+                  hseTieInWith: '',
                   startTime: defaultStart, 
                   finishTime: defaultFinish, 
                   site: defaultSite, 
@@ -971,6 +1004,7 @@
                   
                   if (isHSE) {
                       if (!job.hseDesc || !job.status || !job.requestedBy) return false;
+                      if (!job.hseStart || !job.hseTieInWith) return false;
                   }
               }
               return true;
@@ -997,6 +1031,7 @@
                       
                       if (isHSE) {
                           if (!job.hseDesc || !job.status || !job.requestedBy) return false;
+                          if (!job.hseStart || !job.hseTieInWith) return false;
                       }
                   }
               }
@@ -1150,6 +1185,9 @@
                   inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.startTime || ''} />);
                   inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.finishTime || ''} />);
                   inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={durationStr} />);
+                  // HSE-only columns 8 (Start) and 9 (Tie in with). Empty for non-HSE rows.
+                  inputs.push(<input key={`r${i}c8`} type="hidden" name={`q5_typeA[${rowIdx}][8]`} value={isHSE ? (job.hseStart || '') : ''} />);
+                  inputs.push(<input key={`r${i}c9`} type="hidden" name={`q5_typeA[${rowIdx}][9]`} value={isHSE ? (job.hseTieInWith || '') : ''} />);
               }
               return inputs;
           };
