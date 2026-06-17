@@ -6,14 +6,15 @@
     <title>ASMS Timesheet App</title>
     <link rel="icon" href="https://www.asms.ie/wp-content/uploads/2017/12/fav16.png" type="image/png">
     
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script>window.React || document.write('<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"><\\/script>')</script>
     
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script>window.ReactDOM || document.write('<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"><\\/script>')</script>
     
-    <!-- Tailwind CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+    <script>window.Babel || document.write('<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.2/babel.min.js"><\\/script>')</script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -708,37 +709,6 @@
                         />
                     </div>
                 )}
-                {isHSE && (
-                    <div className="animate-fade-in mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
-                                Start <span className="text-asms-orange">*</span>
-                            </label>
-                            <select
-                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all ${isInvalid('hseStart') ? 'border-red-500/50 bg-red-900/10' : ''}`}
-                                value={job.hseStart || ''}
-                                onChange={(e) => onChange(job.id, 'hseStart', e.target.value)}
-                                style={{ colorScheme: 'dark' }}
-                            >
-                                <option value="">Select...</option>
-                                <option value="This Week">1. This Week</option>
-                                <option value="Previous Week">2. Previous Week</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
-                                Tie in with <span className="text-asms-orange">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                className={`w-full glass-input rounded-lg px-3 py-2.5 text-sm transition-all placeholder-slate-600 ${isInvalid('hseTieInWith') ? 'border-red-500/50 bg-red-900/10' : ''}`}
-                                placeholder="Name(s) you worked with"
-                                value={job.hseTieInWith || ''}
-                                onChange={(e) => onChange(job.id, 'hseTieInWith', e.target.value)}
-                            />
-                        </div>
-                    </div>
-                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/30 border border-white/5 p-4 rounded-xl relative z-0">
@@ -954,8 +924,6 @@
                   hsePo: '', 
                   hseDesc: '', 
                   requestedBy: '',
-                  hseStart: '',
-                  hseTieInWith: '',
                   startTime: defaultStart, 
                   finishTime: defaultFinish, 
                   site: defaultSite, 
@@ -1004,7 +972,6 @@
                   
                   if (isHSE) {
                       if (!job.hseDesc || !job.status || !job.requestedBy) return false;
-                      if (!job.hseStart || !job.hseTieInWith) return false;
                   }
               }
               return true;
@@ -1031,7 +998,6 @@
                       
                       if (isHSE) {
                           if (!job.hseDesc || !job.status || !job.requestedBy) return false;
-                          if (!job.hseStart || !job.hseTieInWith) return false;
                       }
                   }
               }
@@ -1185,9 +1151,6 @@
                   inputs.push(<input key={`r${i}c5`} type="hidden" name={`q5_typeA[${rowIdx}][5]`} value={job.startTime || ''} />);
                   inputs.push(<input key={`r${i}c6`} type="hidden" name={`q5_typeA[${rowIdx}][6]`} value={job.finishTime || ''} />);
                   inputs.push(<input key={`r${i}c7`} type="hidden" name={`q5_typeA[${rowIdx}][7]`} value={durationStr} />);
-                  // HSE-only columns 8 (Start) and 9 (Tie in with). Empty for non-HSE rows.
-                  inputs.push(<input key={`r${i}c8`} type="hidden" name={`q5_typeA[${rowIdx}][8]`} value={isHSE ? (job.hseStart || '') : ''} />);
-                  inputs.push(<input key={`r${i}c9`} type="hidden" name={`q5_typeA[${rowIdx}][9]`} value={isHSE ? (job.hseTieInWith || '') : ''} />);
               }
               return inputs;
           };
